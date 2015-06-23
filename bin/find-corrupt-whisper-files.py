@@ -20,10 +20,17 @@ def walk_dir(base_dir, delete_corrupt=False, verbose=False):
         for f in whisper_files:
             try:
                 info = whisper.info(f)
+            except EnvironmentError as exc:
+                print('Unable to load Whisper file %s: %s' % (f, exc), file=sys.stderr)
+                continue
             except whisper.CorruptWhisperFile:
                 if delete_corrupt:
                     print('Deleting corrupt Whisper file: %s' % f, file=sys.stderr)
-                    os.unlink(f)
+
+                    try:
+                        os.unlink(f)
+                    except (IOError, OSError) as exc:
+                        print('Unable to delete %s: %s' % (f, exc), file=sys.stderr)
                 else:
                     print('Corrupt Whisper file: %s' % f, file=sys.stderr)
                 continue
